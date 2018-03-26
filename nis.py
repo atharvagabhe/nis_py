@@ -1,10 +1,11 @@
+#!usr/bin/env python
 ###########import###############
 import json
 import requests
 import time
 ###########global###############
 read_count=0
-sleep_time=2
+sleep_time=1
 
 
 
@@ -17,17 +18,31 @@ def getTemperature():
 	print(s)
 	return s
 
+def getTrigger():
+        f= open('/var/www/html/nectmatic/py_nis/nis.csv','r')
+        z = f.readline()
+        f.close()
+        return z
 
+def resetTrigger():
+        f= open('/var/www/html/nectmatic/py_nis/nis.csv','w')
+        f.write('0')
+        f.close()
+        
 ############main#############
 try:
-        while(read_count<100):
-                x=getTemperature()
-                f= open('/var/www/html/nectmatic/simfiles/readings.csv','a')
-                f.write(str(x) + '\n')
-                f.close()
-                print(read_count)
-                read_count+=1
-                time.sleep(sleep_time)
+        while(True):
+                while((read_count<100) & (getTrigger()=='1')):
+                        x=getTemperature()
+                        f= open('/var/www/html/nectmatic/simfiles/readings.csv','a')
+                        f.write(str(x) + '\n')
+                        f.close()
+                        print(read_count)
+                        read_count+=1
+                        time.sleep(sleep_time)
+                        if(read_count==99):
+                                print('reset')
+                                resetTrigger()
 except (RuntimeError,TypeError,ValueError):
         print('Value Import Failed')
         
